@@ -1,1 +1,12 @@
-<p>home works!</p>
+<div class="content">
+    <h1>Encurtador de URL</h1>
+    <input type="text" placeholder="Digite a URL para encurtar" />
+    <button (click)="sendUrl()">Encurtar</button>
+
+    @if (url)
+    {
+        <div class="result">
+            <p>URL encurtada: {{ url }}</p>
+        </div>
+    }
+</div>
