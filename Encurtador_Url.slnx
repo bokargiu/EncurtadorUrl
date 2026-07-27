@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="encurtador_url.client/encurtador_url.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="Encurtador_Url.Server/Encurtador_Url.Server.csproj" />
+</Solution>
