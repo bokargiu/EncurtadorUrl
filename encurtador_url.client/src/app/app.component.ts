@@ -8,12 +8,8 @@ import { RouterOutlet } from '@angular/router';
   styleUrl: './app.component.css',
   imports: [RouterOutlet]
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   constructor() {}
-
-  ngOnInit() {
-
-  }
 
   title = 'Encurtador de URL';
 }
