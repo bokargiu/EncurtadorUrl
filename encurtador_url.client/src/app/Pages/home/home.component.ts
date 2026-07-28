@@ -1,17 +1,29 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Inject, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { UrlService } from '../../Services/url.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
-  url: string | null = null;
+  url: string = '';
+  shortUrl: string = '';
+  
+  private urlService = inject(UrlService);
 
   sendUrl() {
-    this.url = 'teste';
+    this.urlService.post(this.url).subscribe(
+      (response) => {
+        this.shortUrl = response.url;
+      },
+      (error) => {
+        console.error('Error occurred while shortening URL:', error);
+      }
+    );
   }
 }

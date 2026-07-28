@@ -1,11 +1,15 @@
 using Encurtador_Url.Server;
+using Encurtador_Url.Server.Services;
+using Encurtador_Url.Server.Services.UrlServices;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy(name: "AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyHeader()
@@ -14,10 +18,10 @@ builder.Services.AddCors(options =>
 });
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("Connection");
 builder.Services.AddDbContext<Encurtador_Url.Server.DataBase>(options =>
 {
-    options.UseMySql(connectionString, serverVersion:ServerVersion.AutoDetect(connectionString));
+    options.UseMySQL(connectionString);
 });
 
 builder.Services.AddControllers();
@@ -25,6 +29,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<DataBase>();
+builder.Services.AddScoped<IUrlService, UrlService>();
 
 
 var app = builder.Build();
@@ -36,7 +41,11 @@ app.MapStaticAssets();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 

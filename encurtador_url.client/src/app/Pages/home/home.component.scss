@@ -45,8 +45,13 @@
         flex-direction: column;
         background-color: #48e2437c;
         width: 35vw;
-        height: 20vh;
+        min-height: 20vh;
         border-radius: 3px;
         padding: 10px;
+
+        p{
+            max-width: 90%;
+            word-wrap: break-word;
+        }
     }
 }
