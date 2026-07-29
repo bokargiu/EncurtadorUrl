@@ -8,7 +8,7 @@ namespace Encurtador_Url.Server.Services.UrlServices
 {
     public class UrlService : IUrlService
     {
-        private DataBase _context;
+        private readonly DataBase _context;
         public UrlService(DataBase context)
         {
             _context = context;
@@ -19,6 +19,9 @@ namespace Encurtador_Url.Server.Services.UrlServices
         }
         public async Task<Url> shorten(string url)
         {
+            if (await ExistsUrl(url) is Url u)
+                    return u;
+
             string cod = GenerateRandomCode(10);
 
             cod = await CheckCod(cod);
@@ -37,38 +40,51 @@ namespace Encurtador_Url.Server.Services.UrlServices
         private string GenerateRandomCode(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var random = new Random();
             return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+                .Select(s => s[Random.Shared.Next(s.Length)]).ToArray());
         }
 
         private async Task<string> CheckCod(string cod)
         {
-            var index = 9;
-            while (await ExistsUrl(cod))
+            var index = cod.Length - 1;
+            while (await ExistsCode(cod))
             {
-                List<Url> urls = await _context.Urls.Where(u => u.UrlCode.StartsWith(cod.Substring(0, index))).ToListAsync();
-                if (urls.Count < 62)
+                List<string> urls = await _context.Urls.AsNoTracking()
+                                                    .Where(u => u.UrlCode
+                                                    .StartsWith(cod.Substring(0, index)))
+                                                    .Select(u => u.UrlCode)
+                                                    .ToListAsync();
+                if (urls.Count < (int)Math.Pow(62, cod.Length - index))
                 {
                     char[] chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToArray();
                     foreach (var item in urls)
                     {
-                        chars.Where(c => c != item.UrlCode[index]).ToArray();
+                        chars = chars.Where(c => c != item[index]).ToArray();
                     }
-                    List<char> newCode = cod.ToArray().ToList();
-                    newCode.Remove(newCode[index]);
-                    newCode.Add(chars[Random.Shared.Next(0, chars.Length)]);
-                    break;
+                    if (chars.Length != 0)
+                    {
+                        char[] newCode = cod.ToArray();
+                        newCode[index] = chars[Random.Shared.Next(0, chars.Length)];
+                        cod = new string(newCode);
+                        break;
+                    }
                 }
                 index--;
-                if (index == -1)
+                if (index >= 8)
+                {
+                    index = cod.Length - 1;
                     cod = GenerateRandomCode(10);
+                }
             }
             return cod;
         }
-        private async Task<bool> ExistsUrl(string url)
+        private async Task<Url?> ExistsUrl(string url)
         {
-            return await _context.Urls.AnyAsync(u => u.OriginalUrl == url);
+            return await _context.Urls.FirstOrDefaultAsync(u => u.OriginalUrl == url);
+        }
+        private async Task<bool> ExistsCode(string code)
+        {
+            return await _context.Urls.AsNoTracking().AnyAsync(u => u.UrlCode == code);
         }
     }
 }
